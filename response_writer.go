@@ -2,37 +2,44 @@ package simplehttp
 
 import "net/http"
 
-type ResponseWriter struct {
+type ResponseWriter interface {
+	http.ResponseWriter
+
+	Status() int
+	Body() []byte
+}
+
+type responseWriter struct {
 	rw         http.ResponseWriter
 	statusCode int
 	body       []byte
 }
 
-func NewResponseWriter(rw http.ResponseWriter) ResponseWriter {
-	return ResponseWriter{
+func NewResponseWriter(rw http.ResponseWriter) responseWriter {
+	return responseWriter{
 		rw:         rw,
 		statusCode: 200,
 	}
 }
 
-func (r ResponseWriter) Header() http.Header {
+func (r responseWriter) Header() http.Header {
 	return r.rw.Header()
 }
 
-func (r ResponseWriter) Write(body []byte) (int, error) {
+func (r responseWriter) Write(body []byte) (int, error) {
 	r.body = append(r.body, body...)
 	return r.rw.Write(body)
 }
 
-func (r ResponseWriter) WriteHeader(statusCode int) {
+func (r responseWriter) WriteHeader(statusCode int) {
 	r.statusCode = statusCode
 	r.rw.WriteHeader(statusCode)
 }
 
-func (r ResponseWriter) Status() int {
+func (r responseWriter) Status() int {
 	return r.statusCode
 }
 
-func (r ResponseWriter) Body() []byte {
+func (r responseWriter) Body() []byte {
 	return r.body
 }
